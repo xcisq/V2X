@@ -1,0 +1,2477 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>次元智驾 - 融合多模态检测与联邦学习的智能车载系统</title>
+    <!-- 引入字体和CSS -->
+    <link rel="stylesheet" href="https://cdn.staticfile.org/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.staticfile.org/tailwindcss/2.2.19/tailwind.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@latest/dist/mermaid.min.js"></script>
+    <style>
+        /* 全局变量定义 */
+        :root {
+            --primary-color: #2a4365;
+            --secondary-color: #ed8936;
+            --accent-color: #805ad5;
+            --background-color: #ffffff;
+            --text-color: #1a202c;
+            --text-light: #4a5568;
+            --card-background: #f7fafc;
+            --border-color: #e2e8f0;
+            --highlight-bg: #ebf4ff;
+            --highlight-border: #90cdf4;
+            --tag-bg: #e6fffa;
+            --tag-color: #319795;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --gradient-start: rgba(237, 137, 54, 0.05);
+            --gradient-end: rgba(128, 90, 213, 0.1);
+            --transition-speed: 0.3s;
+        }
+
+        [data-theme="dark"] {
+            --primary-color: #90cdf4;
+            --secondary-color: #fbd38d;
+            --accent-color: #d6bcfa;
+            --background-color: #1a202c;
+            --text-color: #f7fafc;
+            --text-light: #cbd5e0;
+            --card-background: #2d3748;
+            --border-color: #4a5568;
+            --highlight-bg: #2c5282;
+            --highlight-border: #4299e1;
+            --tag-bg: #234e52;
+            --tag-color: #4fd1c5;
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --gradient-start: rgba(237, 137, 54, 0.1);
+            --gradient-end: rgba(128, 90, 213, 0.2);
+        }
+
+        /* 基础样式 */
+        body {
+            font-family: 'Noto Sans SC', Tahoma, Arial, Roboto, "Droid Sans", "Helvetica Neue", "Droid Sans Fallback", "Heiti SC", "Hiragino Sans GB", Simsun, sans-self;
+            color: var(--text-color);
+            background-color: var(--background-color);
+            transition: background-color var(--transition-speed), color var(--transition-speed);
+            line-height: 1.8;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Noto Serif SC', Georgia, 'Times New Roman', Times, serif;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            letter-spacing: -0.025em;
+        }
+
+        h2 {
+            font-size: 1.875rem;
+            letter-spacing: -0.015em;
+            position: relative;
+            display: inline-block;
+        }
+
+        h2:after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 60px;
+            height: 3px;
+            background-color: var(--secondary-color);
+            border-radius: 3px;
+            transition: background-color var(--transition-speed);
+        }
+
+        .text-gradient {
+            background: linear-gradient(90deg, var(--secondary-color), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent;
+        }
+
+        /* 导航栏样式 */
+        .navbar {
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: background-color var(--transition-speed);
+        }
+
+        /* 卡片样式 */
+        .card {
+            background-color: var(--card-background);
+            border-radius: 0.75rem;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 4px 6px var(--shadow-color);
+            position: relative;
+            z-index: 1;
+        }
+
+        .card:hover {
+            transform: translateY(-8px) scale(1.01);
+            box-shadow: 0 15px 30px var(--shadow-color);
+        }
+        
+        .card:after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            opacity: 0;
+            z-index: -1;
+            transition: opacity 0.4s ease;
+            border-radius: 0.75rem;
+        }
+        
+        .card:hover:after {
+            opacity: 0.05;
+        }
+
+        /* 特性标签 */
+        .feature-tag {
+            background-color: var(--tag-bg);
+            color: var(--tag-color);
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            padding: 0.25rem 0.75rem;
+            font-weight: 500;
+            display: inline-block;
+            transition: background-color var(--transition-speed), color var(--transition-speed);
+        }
+
+        /* 首字下沉 */
+        .dropcap::first-letter {
+            float: left;
+            font-size: 3.5em;
+            line-height: 0.8;
+            margin-right: 0.1em;
+            color: var(--primary-color);
+            font-weight: bold;
+            font-family: 'Noto Serif SC', serif;
+        }
+
+        /* 渐变背景 */
+        .gradient-bg {
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+        }
+
+        /* 强调区块 */
+        .highlight-block {
+            background-color: var(--highlight-bg);
+            border-left: 4px solid var(--highlight-border);
+            padding: 1rem;
+            border-radius: 0 0.5rem 0.5rem 0;
+            transition: background-color var(--transition-speed), border-color var(--transition-speed);
+        }
+
+        /* 定制按钮 */
+        .custom-button {
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 0.5rem;
+            padding: 0.5rem 1.5rem;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            font-weight: 500;
+            z-index: 1;
+        }
+
+        .custom-button:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .custom-button:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, rgba(255,255,255,0.1), rgba(255,255,255,0.3), rgba(255,255,255,0.1));
+            transition: all 0.6s ease;
+            z-index: -1;
+        }
+
+        .custom-button:hover:before {
+            left: 100%;
+        }
+        
+        .custom-button:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--secondary-color), var(--accent-color));
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.4s ease;
+        }
+        
+        .custom-button:hover:after {
+            transform: scaleX(1);
+        }
+
+        /* 主题切换按钮 */
+        .theme-toggle {
+            width: 48px;
+            height: 24px;
+            border-radius: 12px;
+            background-color: var(--card-background);
+            border: 1px solid var(--border-color);
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle::after {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background-color: var(--secondary-color);
+            top: 2px;
+            left: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle[data-theme="dark"]::after {
+            transform: translateX(24px);
+            background-color: var(--accent-color);
+        }
+
+        /* 自定义滚动条 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--card-background);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--text-light);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            backgrounscrollbar-thumb:hover {
+            background: var(--primary-color);
+        }
+
+        /* 阅读进度条 */
+        .progress-container {
+            width: 100%;
+            height: 3px;
+            background: transparent;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+
+        .progress-bar {
+            height: 3px;
+            background: var(--secondary-color);
+            width: 0%;
+        }
+
+        /* 数据可视化容器 */
+        .mermaid {
+            background-color: var(--card-background);
+            padding: 1rem;
+            border-radius: 0.75rem;
+            margin: 1.5rem 0;
+            overflow: auto;
+            transition: background-color var(--transition-speed);
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            h2 {
+                font-size: 1.5rem;
+            }
+            
+            .dropcap::first-letter {
+                font-size: 2.5em;
+            }
+        }
+
+        /* 动画效果 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-fadeIn {
+            animation: fadeIn 0.6s ease forwards;
+        }
+
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+        .delay-4 { animation-delay: 0.4s; }
+        .delay-5 { animation-delay: 0.5s; }
+
+        /* Hero图形元素 */
+        .hero-graphic {
+            position: relative;
+            height: 300px;
+            overflow: hidden;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px var(--shadow-color);
+            background: linear-gradient(135deg, rgba(42, 67, 101, 0.05) 0%, rgba(128, 90, 213, 0.1) 100%);
+        }
+
+        .hero-graphic .car {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 180px;
+            height: 60px;
+            background-color: var(--primary-color);
+            border-radius: 12px 50px 0 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            animation: carFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes carFloat {
+            0%, 100% { transform: translateX(-50%) translateY(0px); }
+            50% { transform: translateX(-50%) translateY(-3px); }
+        }
+
+        .hero-graphic .car:before {
+            content: '';
+            position: absolute;
+            top: -30px;
+            left: 30px;
+            width: 120px;
+            height: 30px;
+            background-color: var(--primary-color);
+            border-radius: 30px 30px 0 0;
+        }
+
+        .hero-graphic .car .window {
+            position: absolute;
+            top: -25px;
+            left: 50px;
+            width: 80px;
+            height: 20px;
+            background-color: rgba(255,255,255,0.7);
+            border-radius: 10px 10px 0 0;
+        }
+
+        .hero-graphic .car .wheel {
+            position: absolute;
+            bottom: -10px;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: var(--text-color);
+            border: 3px solid var(--text-light);
+            animation: wheelRotate 2s linear infinite;
+        }
+
+        @keyframes wheelRotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hero-graphic .car .wheel.left {
+            left: 30px;
+        }
+
+        .hero-graphic .car .wheel.right {
+            right: 30px;
+        }
+
+        .hero-graphic .radar {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -80%);
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            border: 2px solid var(--accent-color);
+            opacity: 0.6;
+            animation: radarPulse 3s ease-in-out infinite;
+        }
+
+        @keyframes radarPulse {
+            0%, 100% { transform: translate(-50%, -80%) scale(1); opacity: 0.6; }
+            50% { transform: translate(-50%, -80%) scale(1.05); opacity: 0.8; }
+        }
+
+        .hero-graphic .radar:before,
+        .hero-graphic .radar:after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            border: 2px solid var(--accent-color);
+        }
+
+        .hero-graphic .radar:before {
+            width: 140px;
+            height: 140px;
+            animation: radarScan1 4s ease-in-out infinite;
+        }
+
+        @keyframes radarScan1 {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+            50% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.8; }
+        }
+
+        .hero-graphic .radar:after {
+            width: 80px;
+            height: 80px;
+            animation: radarScan2 5s ease-in-out infinite;
+        }
+
+        @keyframes radarScan2 {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+            50% { transform: translate(-50%, -50%) scale(1.15); opacity: 0.9; }
+        }
+
+        .hero-graphic .signal {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background-color: rgba(128, 90, 213, 0.2);
+            animation: signal 3s infinite;
+        }
+
+        @keyframes signal {
+            0% { width: 0; height: 0; opacity: 0.8; }
+            100% { width: 400px; height: 400px; opacity: 0; }
+        }
+
+        .hero-graphic .data {
+            position: absolute;
+            width: 2px;
+            height: 10px;
+            background-color: var(--secondary-color);
+            animation: dataMove 1.5s infinite;
+            opacity: 0;
+        }
+
+        .hero-graphic .data:nth-child(1) {
+            top: 40%;
+            left: 30%;
+            animation-delay: 0s;
+        }
+
+        .hero-graphic .data:nth-child(2) {
+            top: 35%;
+            left: 60%;
+            animation-delay: 0.3s;
+        }
+
+        .hero-graphic .data:nth-child(3) {
+            top: 60%;
+            left: 40%;
+            animation-delay: 0.6s;
+        }
+
+        .hero-graphic .data:nth-child(4) {
+            top: 50%;
+            left: 70%;
+            animation-delay: 0.9s;
+        }
+
+        .hero-graphic .data:nth-child(5) {
+            top: 45%;
+            left: 20%;
+            animation-delay: 1.2s;
+        }
+
+        @keyframes dataMove {
+            0% { transform: translateY(0) scale(1); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateY(-100px) scale(0.5); opacity: 0; }
+        }
+
+        /* 图表样式调整 */
+        .mermaid svg {
+            max-width: 100%;
+            height: auto !important;
+        }
+
+        /* 滚动视差效果 */
+        .parallax-section {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .parallax-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 120%;
+            background-size: cover;
+            background-position: center;
+            z-index: -1;
+            transform: translateZ(-1px) scale(2);
+            transition: transform 0.5s ease-out;
+        }
+        
+        /* 滚动触发动画 */
+        .scroll-animate {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.215, 0.61, 0.355, 1);
+        }
+        
+        .scroll-animate.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* 3D卡片效果 */
+        .card-3d {
+            perspective: 1000px;
+            transform-style: preserve-3d;
+        }
+        
+        .card-3d .card-inner {
+            transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+            transform-style: preserve-3d;
+        }
+        
+        .card-3d:hover .card-inner {
+            transform: rotateY(5deg) rotateX(5deg);
+        }
+        
+        /* 高光效果 */
+        .card-shine {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, 
+                rgba(255,255,255,0) 0%, 
+                rgba(255,255,255,0.05) 40%, 
+                rgba(255,255,255,0.1) 50%, 
+                rgba(255,255,255,0.05) 60%, 
+                rgba(255,255,255,0) 100%);
+            transform: translateY(-100%);
+            transition: transform 0.6s ease-out;
+            pointer-events: none;
+        }
+        
+        .card:hover .card-shine {
+            transform: translateY(100%);
+        }
+        
+        /* 渐变边框效果 */
+        .gradient-border {
+            position: relative;
+            border-radius: 0.75rem;
+            z-index: 0;
+        }
+        
+        .gradient-border::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, var(--secondary-color), var(--accent-color), var(--primary-color));
+            z-index: -1;
+            border-radius: 0.85rem;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        
+        .gradient-border:hover::before {
+            opacity: 1;
+        }
+        
+        /* 文字渐变效果 */
+        .text-gradient-hover {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .text-gradient-hover:hover {
+            background: linear-gradient(90deg, var(--secondary-color), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        /* 玻璃态设计效果 */
+        .glassmorphism {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .dark .glassmorphism {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        /* 霓虹灯效果 */
+        .neon-text {
+            text-shadow: 0 0 5px rgba(237, 137, 54, 0.5), 
+                         0 0 10px rgba(237, 137, 54, 0.3), 
+                         0 0 15px rgba(237, 137, 54, 0.1);
+            transition: text-shadow 0.3s ease;
+        }
+        
+        .neon-text:hover {
+            text-shadow: 0 0 5px rgba(237, 137, 54, 0.8), 
+                         0 0 10px rgba(237, 137, 54, 0.6), 
+                         0 0 15px rgba(237, 137, 54, 0.4),
+                         0 0 20px rgba(237, 137, 54, 0.2);
+        }
+        
+        /* 流体动画背景 */
+        .fluid-bg {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .fluid-bg::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                rgba(42, 67, 101, 0.1) 0%,
+                rgba(128, 90, 213, 0.1) 25%,
+                rgba(237, 137, 54, 0.1) 50%,
+                rgba(128, 90, 213, 0.1) 75%,
+                rgba(42, 67, 101, 0.1) 100%
+            );
+            animation: fluidRotate 20s linear infinite;
+            z-index: -1;
+        }
+        
+        @keyframes fluidRotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* 悬浮图标效果 */
+        .floating-icon {
+            animation: floatingIcon 3s ease-in-out infinite;
+        }
+        
+        @keyframes floatingIcon {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        /* 脉冲按钮效果 */
+        .pulse-button {
+            position: relative;
+        }
+        
+        .pulse-button::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: inherit;
+            background: inherit;
+            opacity: 0.6;
+            z-index: -1;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.6; }
+            50% { transform: scale(1.1); opacity: 0; }
+            100% { transform: scale(1); opacity: 0; }
+        }
+        
+        /* 动态边框效果 */
+        .animated-border {
+            position: relative;
+            border-radius: 0.75rem;
+            overflow: hidden;
+        }
+        
+        .animated-border::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent, 
+                var(--secondary-color), 
+                var(--accent-color), 
+                var(--primary-color), 
+                transparent);
+            z-index: -1;
+            animation: borderMove 3s linear infinite;
+        }
+        
+        @keyframes borderMove {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        /* 磨砂玻璃卡片 */
+        .frosted-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* 动态波浪效果 */
+        .wave-container {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .wave {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100px;
+            background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1440 320" xmlns="http://www.w3.org/2000/svg"><path fill="%232a4365" fill-opacity="0.1" d="M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>');
+            background-repeat: repeat-x;
+            background-size: 1440px 100px;
+            animation: waveMove 20s linear infinite;
+        }
+        
+        .wave:nth-child(2) {
+            bottom: 10px;
+            opacity: 0.5;
+            animation: waveMove 15s linear infinite reverse;
+        }
+        
+        .wave:nth-child(3) {
+            bottom: 20px;
+            opacity: 0.2;
+            animation: waveMove 10s linear infinite;
+        }
+        
+        @keyframes waveMove {
+            0% { background-position-x: 0; }
+            100% { background-position-x: 1440px; }
+        }
+        
+        /* 打字机效果 */
+        .typewriter {
+            overflow: hidden;
+            border-right: 2px solid var(--secondary-color);
+            white-space: nowrap;
+            margin: 0 auto;
+            animation: typing 3.5s steps(40, end), blink-caret 0.75s step-end infinite;
+        }
+        
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+        
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: var(--secondary-color) }
+        }
+
+        /* 主要功能与特性 */
+        .features-section {
+            position: relative;
+        }
+
+        .features-section h2 {
+            position: relative;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .features-section h2::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: -10px;
+            width: 40px;
+            height: 4px;
+            background: linear-gradient(to right, var(--blue-400), var(--purple-500), var(--pink-500));
+            border-radius: 2px;
+        }
+
+        .feature-card {
+            position: relative;
+            transition: all 0.5s ease;
+        }
+        
+        .feature-icon {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .icon-pulse:before,
+        .icon-pulse:after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: currentColor;
+            opacity: 0.3;
+            z-index: -1;
+        }
+        
+        .icon-pulse:before {
+            animation: pulse 2s ease-out infinite;
+        }
+        
+        .icon-pulse:after {
+            animation: pulse 2s 1s ease-out infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0.3;
+            }
+            80%, 100% {
+                transform: translate(-50%, -50%) scale(5);
+                opacity: 0;
+            }
+        }
+        
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+        
+        /* 音乐可视化动画 */
+        @keyframes musicbar1 { 0%, 100% { height: 4px; } 50% { height: 10px; } }
+        @keyframes musicbar2 { 0%, 100% { height: 8px; } 50% { height: 14px; } }
+        @keyframes musicbar3 { 0%, 100% { height: 12px; } 50% { height: 6px; } }
+        @keyframes musicbar4 { 0%, 100% { height: 6px; } 50% { height: 16px; } }
+        @keyframes musicbar5 { 0%, 100% { height: 10px; } 50% { height: 4px; } }
+        @keyframes musicbar6 { 0%, 100% { height: 4px; } 50% { height: 12px; } }
+        @keyframes musicbar7 { 0%, 100% { height: 7px; } 50% { height: 18px; } }
+        @keyframes musicbar8 { 0%, 100% { height: 9px; } 50% { height: 5px; } }
+        
+        .animate-musicbar1 { animation: musicbar1 1.1s ease-in-out infinite; }
+        .animate-musicbar2 { animation: musicbar2 1.2s ease-in-out infinite; }
+        .animate-musicbar3 { animation: musicbar3 0.9s ease-in-out infinite; }
+        .animate-musicbar4 { animation: musicbar4 1.3s ease-in-out infinite; }
+        .animate-musicbar5 { animation: musicbar5 1s ease-in-out infinite; }
+        .animate-musicbar6 { animation: musicbar6 1.4s ease-in-out infinite; }
+        .animate-musicbar7 { animation: musicbar7 0.8s ease-in-out infinite; }
+        .animate-musicbar8 { animation: musicbar8 1.5s ease-in-out infinite; }
+        
+        /* 语音可视化动画 */
+        @keyframes voicebar1 { 0%, 100% { height: 3px; } 50% { height: 7px; } }
+        @keyframes voicebar2 { 0%, 100% { height: 5px; } 50% { height: 9px; } }
+        @keyframes voicebar3 { 0%, 100% { height: 7px; } 50% { height: 4px; } }
+        @keyframes voicebar4 { 0%, 100% { height: 10px; } 50% { height: 6px; } }
+        @keyframes voicebar5 { 0%, 100% { height: 8px; } 50% { height: 12px; } }
+        @keyframes voicebar6 { 0%, 100% { height: 5px; } 50% { height: 8px; } }
+        @keyframes voicebar7 { 0%, 100% { height: 3px; } 50% { height: 10px; } }
+        
+        .animate-voicebar1 { animation: voicebar1 0.7s ease-in-out infinite; }
+        .animate-voicebar2 { animation: voicebar2 0.8s ease-in-out infinite; }
+        .animate-voicebar3 { animation: voicebar3 0.9s ease-in-out infinite; }
+        .animate-voicebar4 { animation: voicebar4 1s ease-in-out infinite; }
+        .animate-voicebar5 { animation: voicebar5 0.9s ease-in-out infinite; }
+        .animate-voicebar6 { animation: voicebar6 0.8s ease-in-out infinite; }
+        .animate-voicebar7 { animation: voicebar7 0.7s ease-in-out infinite; }
+        
+        /* 倒计时动画 */
+        .countdown-animation {
+            animation: countdown 5s steps(5, end) infinite;
+        }
+        
+        @keyframes countdown {
+            0% { content: "5"; }
+            20% { content: "4"; }
+            40% { content: "3"; }
+            60% { content: "2"; }
+            80% { content: "1"; }
+            100% { content: "0"; }
+        }
+
+        /* 按钮悬浮效果 */
+        .pulse-button {
+            animation: pulse 2s infinite;
+        }
+        
+        /* 视频链接按钮样式 */
+        .video-link {
+            position: relative;
+            z-index: 20;
+            display: inline-block;
+            padding: 0.5rem 1.5rem;
+            cursor: pointer;
+            overflow: visible;
+        }
+        
+        /* 确保粒子效果不覆盖链接 */
+        #particles-js {
+            pointer-events: none;
+        }
+        
+        /* 确保头部内容可点击 */
+        .header-content {
+            position: relative;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <!-- 阅读进度条 -->
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <!-- 导航栏 -->
+    <nav class="navbar fixed top-0 w-full py-4 px-6 md:px-10 flex justify-between items-center z-10 glassmorphism">
+        <div class="flex items-center">
+            <div class="text-xl font-bold text-gradient neon-text">次元智驾</div>
+        </div>
+        <div class="flex items-center space-x-6">
+            <a href="#overview" class="hidden md:block hover:text-secondary-color transition-colors">项目概述</a>
+            <a href="#technology" class="hidden md:block hover:text-secondary-color transition-colors">核心技术</a>
+            <a href="#features" class="hidden md:block hover:text-secondary-color transition-colors">功能特性</a>
+            <a href="#market" class="hidden md:block hover:text-secondary-color transition-colors">市场价值</a>
+            <a href="#future" class="hidden md:block hover:text-secondary-color transition-colors">未来展望</a>
+            <div class="theme-toggle" id="themeToggle"></div>
+        </div>
+    </nav>
+
+    <!-- Hero区域 -->
+    <header class="pt-32 pb-20 px-6 md:px-10 lg:px-20 gradient-bg relative fluid-bg">
+        <div id="particles-js" class="absolute inset-0 z-0"></div>
+        <div class="max-w-6xl mx-auto relative z-1 header-content">
+            <div class="flex flex-col md:flex-row items-center justify-between">
+                <div class="md:w-1/2 mb-10 md:mb-0">
+                    <h1 class="text-4xl md:text-5xl font-bold mb-6 animate-fadeIn typewriter">
+                        <span class="text-gradient neon-text">智能车载系统</span><br>
+                        重新定义驾驶安全与体验
+                    </h1>
+                    <p class="text-lg text-text-light mb-8 max-w-xl animate-fadeIn delay-1">
+                        融合多模态检测、联邦学习与虚拟数字人技术，打造从被动监测到主动干预的全新智能驾驶体验。
+                    </p>
+                    <div class="flex space-x-4 animate-fadeIn delay-2">
+                        <a href="#technology" class="custom-button pulse-button">
+                            探索技术 <i class="fas fa-arrow-right ml-2"></i>
+                        </a>
+                        <a href="./演示视频.mp4" target="_blank" class="video-link border border-primary-color text-primary-color px-6 py-2 rounded-lg hover:bg-primary-color hover:text-white transition-all duration-300 transform hover:scale-105 hover:shadow-lg relative z-20">
+                            <i class="fas fa-play-circle mr-2 floating-icon"></i>查看演示
+                        </a>
+                    </div>
+                </div>
+                <div class="md:w-1/2 animate-fadeIn delay-3">
+                    <div class="hero-graphic">
+                        <div class="radar"></div>
+                        <div class="signal"></div>
+                        <div class="car">
+                            <div class="window"></div>
+                            <div class="wheel left"></div>
+                            <div class="wheel right"></div>
+                        </div>
+                        <div class="data"></div>
+                        <div class="data"></div>
+                        <div class="data"></div>
+                        <div class="data"></div>
+                        <div class="data"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="wave-container absolute bottom-0 left-0 w-full h-20 overflow-hidden">
+            <div class="wave"></div>
+            <div class="wave"></div>
+            <div class="wave"></div>
+        </div>
+    </header>
+
+    <!-- 主要内容区域 -->
+    <main class="py-10 px-6 md:px-10 lg:px-20">
+        <div class="max-w-6xl mx-auto">
+            <!-- 项目概述 -->
+            <section id="overview" class="mb-20">
+                <h2 class="text-2xl md:text-3xl mb-10">项目整体定位与目标</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="card p-6 md:p-8 bg-gradient-to-br from-primary-color/5 to-secondary-color/5 hover:from-primary-color/10 hover:to-secondary-color/10 transition-all duration-300">
+                        <div class="relative mb-8">
+                            <div class="absolute -left-2 -top-2 w-12 h-12 bg-primary-color/10 rounded-full"></div>
+                            <div class="absolute -left-1 -top-1 w-12 h-12 bg-secondary-color/10 rounded-full"></div>
+                            <div class="relative flex items-center">
+                                <i class="fas fa-bullseye text-secondary-color text-3xl mr-4"></i>
+                                <h3 class="text-2xl font-semibold bg-gradient-to-r from-primary-color to-secondary-color bg-clip-text text-transparent">愿景</h3>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-6">
+                            <p class="dropcap text-lg leading-relaxed">
+                                该项目是一套融合"多模态检测、联邦学习与虚拟数字人技术"的车载智能系统，旨在全面提升驾驶安全、用户体验与隐私保护。
+                            </p>
+                            
+                            <div class="pl-4 border-l-4 border-secondary-color/30">
+                                <p class="text-text-light">
+                                    通过跨学科技术的深度集成，实现了从被动监测到主动干预的重大升级，满足新手驾驶员、家庭用车、高端智能汽车甚至商用车队的多元化需求。
+                                </p>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4 mt-6">
+                                <div class="p-4 rounded-lg bg-white/5 backdrop-blur-sm border border-primary-color/10 hover:border-primary-color/30 transition-all duration-300">
+                                    <div class="flex items-center mb-2">
+                                        <i class="fas fa-car-crash text-primary-color mr-2"></i>
+                                        <span class="font-medium">驾驶安全</span>
+                                    </div>
+                                    <p class="text-sm text-text-light">主动预警与干预机制</p>
+                                </div>
+                                
+                                <div class="p-4 rounded-lg bg-white/5 backdrop-blur-sm border border-secondary-color/10 hover:border-secondary-color/30 transition-all duration-300">
+                                    <div class="flex items-center mb-2">
+                                        <i class="fas fa-microchip text-secondary-color mr-2"></i>
+                                        <span class="font-medium">智能交互</span>
+                                    </div>
+                                    <p class="text-sm text-text-light">数字人实时陪伴</p>
+                                </div>
+                                
+                                <div class="p-4 rounded-lg bg-white/5 backdrop-blur-sm border border-accent-color/10 hover:border-accent-color/30 transition-all duration-300">
+                                    <div class="flex items-center mb-2">
+                                        <i class="fas fa-shield-alt text-accent-color mr-2"></i>
+                                        <span class="font-medium">数据隐私</span>
+                                    </div>
+                                    <p class="text-sm text-text-light">联邦学习保护机制</p>
+                                </div>
+                                
+                                <div class="p-4 rounded-lg bg-white/5 backdrop-blur-sm border border-primary-color/10 hover:border-primary-color/30 transition-all duration-300">
+                                    <div class="flex items-center mb-2">
+                                        <i class="fas fa-chart-line text-primary-color mr-2"></i>
+                                        <span class="font-medium">市场价值</span>
+                                    </div>
+                                    <p class="text-sm text-text-light">多层次商业模式</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="highlight-block mb-6">
+                            <h3 class="text-lg font-semibold mb-2"><i class="fas fa-shield-alt mr-2"></i> 安全</h3>
+                            <p>在海量实时数据的监测与分析中，大幅降低疲劳驾驶、路怒症等风险事故的发生率。</p>
+                        </div>
+                        <div class="highlight-block mb-6">
+                            <h3 class="text-lg font-semibold mb-2"><i class="fas fa-robot mr-2"></i> 智能</h3>
+                            <p>以虚拟数字人、语音助手、可视化监测等方式，带来前所未有的拟人化交互体验。</p>
+                        </div>
+                        <div class="highlight-block mb-6">
+                            <h3 class="text-lg font-semibold mb-2"><i class="fas fa-user-shield mr-2"></i> 隐私</h3>
+                            <p>联邦学习与本地化训练机制彻底化解数据泄露隐忧，提高用户信任度。</p>
+                        </div>
+                        <div class="highlight-block">
+                            <h3 class="text-lg font-semibold mb-2"><i class="fas fa-chart-line mr-2"></i> 市场</h3>
+                            <p>面向私家车、商用车、汽车厂商等多层次市场需求，拥有可观的营收模式与商业化前景。</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 核心技术 -->
+            <section id="technology" class="mb-20">
+                <h2 class="text-2xl md:text-3xl mb-10">核心技术亮点</h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <!-- 技术1：AI感知技术 -->
+                    <div class="card transform hover:scale-105 transition-transform duration-300 frosted-card animated-border">
+                        <div class="relative">
+                            <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-primary-color to-secondary-color"></div>
+                            <div class="p-6">
+                                <div class="flex items-center justify-between mb-6">
+                                    <div class="feature-tag">AI感知技术</div>
+                                    <div class="w-10 h-10 rounded-full bg-primary-color bg-opacity-20 flex items-center justify-center floating-icon">
+                                        <i class="fas fa-brain text-primary-color"></i>
+                                    </div>
+                                </div>
+                                <h3 class="text-xl font-semibold mb-4 neon-text">多模态行为与情绪检测</h3>
+                                <ul class="space-y-4">
+                                    <li class="flex items-start">
+                                        <i class="fas fa-check-circle text-secondary-color mt-1 mr-3"></i>
+                                        <span>多源数据融合：整合面部表情、语音、身体动作等多维数据</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fas fa-check-circle text-secondary-color mt-1 mr-3"></i>
+                                        <span>YOLOv11创新应用：实时目标检测与情绪识别</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fas fa-check-circle text-secondary-color mt-1 mr-3"></i>
+                                        <span>实时可视化呈现：动态展示驾驶员状态</span>
+                                    </li>
+                                </ul>
+                                <div class="mt-6 pt-4 border-t border-border-color">
+                                    <a href="#" class="text-primary-color hover:text-secondary-color transition-colors text-sm font-medium flex items-center">
+                                        了解更多 <i class="fas fa-arrow-right ml-2"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 技术2：数据安全 -->
+                    <div class="card transform hover:scale-105 transition-transform duration-300 frosted-card animated-border">
+                        <div class="relative">
+                            <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-secondary-color to-accent-color"></div>
+                            <div class="p-6">
+                                <div class="flex items-center justify-between mb-6">
+                                    <div class="feature-tag">数据安全</div>
+                                    <div class="w-10 h-10 rounded-full bg-secondary-color bg-opacity-20 flex items-center justify-center floating-icon">
+                                        <i class="fas fa-shield-alt text-secondary-color"></i>
+                                    </div>
+                                </div>
+                                <h3 class="text-xl font-semibold mb-4 neon-text">联邦学习与隐私保护</h3>
+                                <ul class="space-y-4">
+                                    <li class="flex items-start">
+                                        <i class="fas fa-check-circle text-secondary-color mt-1 mr-3"></i>
+                                        <span>分布式训练：本地训练，仅上传加密模型参数</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fas fa-check-circle text-secondary-color mt-1 mr-3"></i>
+                                        <span>三层联邦学习架构：设备层、边缘层、云端层</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fas fa-check-circle text-secondary-color mt-1 mr-3"></i>
+                                        <span>声誉机制车辆选择算法：高效动态客户端选择</span>
+                                    </li>
+                                </ul>
+                                <div class="mt-6 pt-4 border-t border-border-color">
+                                    <a href="#" class="text-primary-color hover:text-secondary-color transition-colors text-sm font-medium flex items-center">
+                                        了解更多 <i class="fas fa-arrow-right ml-2"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 技术3：人机交互 -->
+                    <div class="card transform hover:scale-105 transition-transform duration-300 frosted-card animated-border">
+                        <div class="relative">
+                            <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-accent-color to-primary-color"></div>
+                            <div class="p-6">
+                                <div class="flex items-center justify-between mb-6">
+                                    <div class="feature-tag">人机交互</div>
+                                    <div class="w-10 h-10 rounded-full bg-accent-color bg-opacity-20 flex items-center justify-center floating-icon">
+                                        <i class="fas fa-robot text-accent-color"></i>
+                                    </div>
+                                </div>
+                                <h3 class="text-xl font-semibold mb-4 neon-text">虚拟数字人与主动交互</h3>
+                                <ul class="space-y-4">
+                                    <li class="flex items-start">
+                                        <i class="fas fa-check-circle text-secondary-color mt-1 mr-3"></i>
+                                        <span>口型同步与Live2D动画：拟人化表情与口型</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fas fa-check-circle text-secondary-color mt-1 mr-3"></i>
+                                        <span>语音助手深度整合：自然语言多轮对话交互</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fas fa-check-circle text-secondary-color mt-1 mr-3"></i>
+                                        <span>实时干预与陪伴：主动情绪疏导与安全接管</span>
+                                    </li>
+                                </ul>
+                                <div class="mt-6 pt-4 border-t border-border-color">
+                                    <a href="#" class="text-primary-color hover:text-secondary-color transition-colors text-sm font-medium flex items-center">
+                                        了解更多 <i class="fas fa-arrow-right ml-2"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 技术架构图 -->
+                <div class="mt-16">
+                    <h3 class="text-xl font-semibold mb-6 flex items-center">
+                        <i class="fas fa-project-diagram text-primary-color mr-3"></i>
+                        系统技术架构
+                    </h3>
+                    <div class="relative bg-gradient-to-br from-gray-900 to-gray-800 p-8 rounded-2xl shadow-2xl overflow-hidden">
+                        <!-- 背景装饰 -->
+                        <div class="absolute top-0 left-0 w-full h-full opacity-10">
+                            <div class="absolute top-0 left-0 w-40 h-40 bg-blue-500 rounded-full filter blur-3xl"></div>
+                            <div class="absolute bottom-0 right-0 w-40 h-40 bg-purple-500 rounded-full filter blur-3xl"></div>
+                        </div>
+                        
+                        <!-- 架构图内容 -->
+                        <div class="grid grid-cols-2 gap-8 relative z-10">
+                            <!-- 左侧：多模态检测流程 -->
+                            <div class="space-y-6">
+                                <div class="text-center mb-8">
+                                    <div class="text-lg font-semibold text-blue-400 mb-2">多模态检测流程</div>
+                                    <div class="h-1 w-20 bg-blue-500 mx-auto rounded-full"></div>
+                                </div>
+                                
+                                <div class="flex flex-col items-center space-y-4">
+                                    <!-- 车载终端设备 -->
+                                    <div class="w-full p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg hover:scale-105 transition-transform">
+                                        <div class="flex items-center">
+                                            <i class="fas fa-car-alt text-blue-400 text-xl mr-3"></i>
+                                            <div>
+                                                <div class="font-medium text-white">车载终端设备</div>
+                                                <div class="text-sm text-gray-400">数据采集与预处理</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <i class="fas fa-arrow-down text-blue-400"></i>
+                                    
+                                    <!-- 多模态数据采集 -->
+                                    <div class="w-full p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg hover:scale-105 transition-transform">
+                                        <div class="flex items-center">
+                                            <i class="fas fa-camera text-blue-400 text-xl mr-3"></i>
+                                            <div>
+                                                <div class="font-medium text-white">多模态数据采集</div>
+                                                <div class="text-sm text-gray-400">面部表情/语音/驾驶行为</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <i class="fas fa-arrow-down text-blue-400"></i>
+                                    
+                                    <!-- 实时处理分支 -->
+                                    <div class="grid grid-cols-3 gap-4 w-full">
+                                        <div class="p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg hover:scale-105 transition-transform">
+                                            <div class="text-center">
+                                                <i class="fas fa-smile text-blue-400 mb-2"></i>
+                                                <div class="text-sm text-white">情绪识别</div>
+                                            </div>
+                                        </div>
+                                        <div class="p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg hover:scale-105 transition-transform">
+                                            <div class="text-center">
+                                                <i class="fas fa-microphone text-blue-400 mb-2"></i>
+                                                <div class="text-sm text-white">语音识别</div>
+                                            </div>
+                                        </div>
+                                        <div class="p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg hover:scale-105 transition-transform">
+                                            <div class="text-center">
+                                                <i class="fas fa-walking text-blue-400 mb-2"></i>
+                                                <div class="text-sm text-white">行为分析</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 右侧：联邦学习流程 -->
+                            <div class="space-y-6">
+                                <div class="text-center mb-8">
+                                    <div class="text-lg font-semibold text-purple-400 mb-2">联邦学习流程</div>
+                                    <div class="h-1 w-20 bg-purple-500 mx-auto rounded-full"></div>
+                                </div>
+                                
+                                <div class="flex flex-col items-center space-y-4">
+                                    <!-- 联邦学习框架 -->
+                                    <div class="w-full p-4 bg-purple-500/10 border border-purple-500/30 rounded-lg hover:scale-105 transition-transform">
+                                        <div class="flex items-center">
+                                            <i class="fas fa-network-wired text-purple-400 text-xl mr-3"></i>
+                                            <div>
+                                                <div class="font-medium text-white">联邦学习框架</div>
+                                                <div class="text-sm text-gray-400">分布式协同训练</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <i class="fas fa-arrow-down text-purple-400"></i>
+                                    
+                                    <!-- 车辆本地模型 -->
+                                    <div class="w-full p-4 bg-purple-500/10 border border-purple-500/30 rounded-lg hover:scale-105 transition-transform">
+                                        <div class="flex items-center">
+                                            <i class="fas fa-microchip text-purple-400 text-xl mr-3"></i>
+                                            <div>
+                                                <div class="font-medium text-white">车辆本地模型</div>
+                                                <div class="text-sm text-gray-400">本地训练与推理</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <i class="fas fa-arrow-down text-purple-400"></i>
+                                    
+                                    <!-- 边缘服务器 -->
+                                    <div class="w-full p-4 bg-purple-500/10 border border-purple-500/30 rounded-lg hover:scale-105 transition-transform">
+                                        <div class="flex items-center">
+                                            <i class="fas fa-server text-purple-400 text-xl mr-3"></i>
+                                            <div>
+                                                <div class="font-medium text-white">边缘服务器</div>
+                                                <div class="text-sm text-gray-400">区域模型聚合</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <i class="fas fa-arrow-down text-purple-400"></i>
+                                    
+                                    <!-- 云端全局模型 -->
+                                    <div class="w-full p-4 bg-purple-500/10 border border-purple-500/30 rounded-lg hover:scale-105 transition-transform">
+                                        <div class="flex items-center">
+                                            <i class="fas fa-cloud text-purple-400 text-xl mr-3"></i>
+                                            <div>
+                                                <div class="font-medium text-white">云端全局模型</div>
+                                                <div class="text-sm text-gray-400">模型更新与分发</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 底部风险评估 -->
+                        <div class="mt-8 pt-8 border-t border-gray-700">
+                            <div class="max-w-md mx-auto p-4 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-gray-600 rounded-lg hover:scale-105 transition-transform">
+                                <div class="flex items-center justify-center">
+                                    <i class="fas fa-shield-alt text-yellow-400 text-xl mr-3"></i>
+                                    <div>
+                                        <div class="font-medium text-white">风险评估系统</div>
+                                        <div class="text-sm text-gray-400">实时监控与预警</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 主要功能与特性 -->
+            <section id="features" class="mb-20 features-section">
+                <h2 class="text-2xl md:text-3xl mb-10 text-center relative py-3">
+                    <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 font-bold">主要功能与特性</span>
+                    <div class="absolute left-1/2 transform -translate-x-1/2 bottom-0 w-40 h-1 bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 rounded-full"></div>
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <!-- 功能1 -->
+                    <div class="feature-card group">
+                        <div class="absolute inset-0 bg-gradient-to-r from-red-500/20 to-orange-500/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        <div class="absolute -inset-0.5 bg-gradient-to-r from-red-500 to-orange-500 rounded-xl opacity-0 group-hover:opacity-20 blur-xl transition-all duration-500"></div>
+                        
+                        <div class="relative p-8 rounded-xl bg-gray-900/80 backdrop-blur border border-gray-800 group-hover:border-red-500/50 transition-all duration-500 z-10">
+                            <div class="feature-icon mb-6">
+                                <div class="w-16 h-16 rounded-full bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center text-white shadow-lg shadow-red-500/30 group-hover:shadow-red-500/50 transition-all duration-500">
+                                    <i class="fas fa-exclamation-triangle text-2xl"></i>
+                                </div>
+                                <div class="icon-pulse"></div>
+                            </div>
+                            
+                            <h3 class="text-xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-orange-400 group-hover:from-red-300 group-hover:to-orange-300 transition-all duration-500">危险驾驶行为识别与安全提醒</h3>
+                            
+                            <p class="text-gray-300 mb-6 group-hover:text-white transition-colors duration-500">
+                                通过多模态融合深度学习实时检测疲劳、分心、打电话、情绪失控等不安全驾驶行为，系统会立即发出警示并语音提示驾驶员纠正，减少人为操作失误所导致的交通事故。
+                            </p>
+                            
+                            <div class="feature-stats space-y-3 pt-4 border-t border-gray-700 group-hover:border-red-500/30 transition-colors duration-500">
+                                <div>
+                                    <div class="flex justify-between text-sm mb-1">
+                                        <span class="text-gray-400">疲劳检测精度</span>
+                                        <span class="text-red-400">97%</span>
+                                    </div>
+                                    <div class="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
+                                        <div class="h-full bg-gradient-to-r from-red-500 to-orange-500 rounded-full" style="width: 97%"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-sm mb-1">
+                                        <span class="text-gray-400">响应速度</span>
+                                        <span class="text-red-400">250ms</span>
+                                    </div>
+                                    <div class="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
+                                        <div class="h-full bg-gradient-to-r from-red-500 to-orange-500 rounded-full" style="width: 90%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 功能2 -->
+                    <div class="feature-card group">
+                        <div class="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        <div class="absolute -inset-0.5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl opacity-0 group-hover:opacity-20 blur-xl transition-all duration-500"></div>
+                        
+                        <div class="relative p-8 rounded-xl bg-gray-900/80 backdrop-blur border border-gray-800 group-hover:border-purple-500/50 transition-all duration-500 z-10">
+                            <div class="feature-icon mb-6">
+                                <div class="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white shadow-lg shadow-purple-500/30 group-hover:shadow-purple-500/50 transition-all duration-500">
+                                    <i class="fas fa-music text-2xl"></i>
+                                </div>
+                                <div class="icon-pulse"></div>
+                            </div>
+                            
+                            <h3 class="text-xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 group-hover:from-purple-300 group-hover:to-pink-300 transition-all duration-500">个性化情绪管理与音乐推荐</h3>
+                            
+                            <p class="text-gray-300 mb-6 group-hover:text-white transition-colors duration-500">
+                                当捕捉到负面情绪时，系统会自动推荐适合当下情绪状态的音乐，或使用数字人进行语音安抚，让驾驶过程更加轻松、安全。
+                            </p>
+                            
+                            <div class="music-visualization mb-4 flex space-x-1 items-end justify-center h-12">
+                                <div class="w-1 bg-gradient-to-t from-purple-500 to-pink-500 rounded-full animate-musicbar1 h-4"></div>
+                                <div class="w-1 bg-gradient-to-t from-purple-500 to-pink-500 rounded-full animate-musicbar2 h-8"></div>
+                                <div class="w-1 bg-gradient-to-t from-purple-500 to-pink-500 rounded-full animate-musicbar3 h-12"></div>
+                                <div class="w-1 bg-gradient-to-t from-purple-500 to-pink-500 rounded-full animate-musicbar4 h-6"></div>
+                                <div class="w-1 bg-gradient-to-t from-purple-500 to-pink-500 rounded-full animate-musicbar5 h-10"></div>
+                                <div class="w-1 bg-gradient-to-t from-purple-500 to-pink-500 rounded-full animate-musicbar6 h-4"></div>
+                                <div class="w-1 bg-gradient-to-t from-purple-500 to-pink-500 rounded-full animate-musicbar7 h-7"></div>
+                                <div class="w-1 bg-gradient-to-t from-purple-500 to-pink-500 rounded-full animate-musicbar8 h-9"></div>
+                            </div>
+                            
+                            <div class="mt-4 flex space-x-2 justify-center">
+                                <span class="px-2 py-1 text-xs rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">古典音乐</span>
+                                <span class="px-2 py-1 text-xs rounded-full bg-pink-500/20 text-pink-300 border border-pink-500/30">白噪音</span>
+                                <span class="px-2 py-1 text-xs rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">舒缓曲调</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 功能3 -->
+                    <div class="feature-card group">
+                        <div class="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        <div class="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl opacity-0 group-hover:opacity-20 blur-xl transition-all duration-500"></div>
+                        
+                        <div class="relative p-8 rounded-xl bg-gray-900/80 backdrop-blur border border-gray-800 group-hover:border-blue-500/50 transition-all duration-500 z-10">
+                            <div class="feature-icon mb-6">
+                                <div class="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/30 group-hover:shadow-blue-500/50 transition-all duration-500">
+                                    <i class="fas fa-microphone-alt text-2xl"></i>
+                                </div>
+                                <div class="icon-pulse"></div>
+                            </div>
+                            
+                            <h3 class="text-xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400 group-hover:from-blue-300 group-hover:to-cyan-300 transition-all duration-500">无缝语音交互与信息可视化</h3>
+                            
+                            <p class="text-gray-300 mb-6 group-hover:text-white transition-colors duration-500">
+                                驾驶员可直接通过语音进行导航、音乐播放、界面切换等操作，避免手动操作造成注意力分散。配合实时数据可视化界面，让驾驶员随时掌握自己的驾驶与情绪状态演变。
+                            </p>
+                            
+                            <div class="voice-visualization flex items-center justify-center space-x-1 mb-4">
+                                <div class="flex space-x-0.5 items-center h-10">
+                                    <div class="w-1 bg-gradient-to-t from-blue-500 to-cyan-500 rounded-full animate-voicebar1 h-3"></div>
+                                    <div class="w-1 bg-gradient-to-t from-blue-500 to-cyan-500 rounded-full animate-voicebar2 h-5"></div>
+                                    <div class="w-1 bg-gradient-to-t from-blue-500 to-cyan-500 rounded-full animate-voicebar3 h-7"></div>
+                                    <div class="w-1 bg-gradient-to-t from-blue-500 to-cyan-500 rounded-full animate-voicebar4 h-10"></div>
+                                    <div class="w-1 bg-gradient-to-t from-blue-500 to-cyan-500 rounded-full animate-voicebar5 h-8"></div>
+                                    <div class="w-1 bg-gradient-to-t from-blue-500 to-cyan-500 rounded-full animate-voicebar6 h-5"></div>
+                                    <div class="w-1 bg-gradient-to-t from-blue-500 to-cyan-500 rounded-full animate-voicebar7 h-3"></div>
+                                </div>
+                                <div class="ml-2 text-xs px-2 py-1 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 animate-pulse">
+                                    聆听中...
+                                </div>
+                            </div>
+                            
+                            <div class="flex flex-wrap gap-2 justify-center">
+                                <div class="command-chip flex items-center px-3 py-1.5 bg-blue-500/10 rounded-full border border-blue-500/20 hover:bg-blue-500/20 transition-colors duration-300">
+                                    <i class="fas fa-map-marker-alt text-xs text-blue-400 mr-1.5"></i>
+                                    <span class="text-xs text-blue-300">导航到家</span>
+                                </div>
+                                <div class="command-chip flex items-center px-3 py-1.5 bg-cyan-500/10 rounded-full border border-cyan-500/20 hover:bg-cyan-500/20 transition-colors duration-300">
+                                    <i class="fas fa-play text-xs text-cyan-400 mr-1.5"></i>
+                                    <span class="text-xs text-cyan-300">播放音乐</span>
+                                </div>
+                                <div class="command-chip flex items-center px-3 py-1.5 bg-blue-500/10 rounded-full border border-blue-500/20 hover:bg-blue-500/20 transition-colors duration-300">
+                                    <i class="fas fa-phone-alt text-xs text-blue-400 mr-1.5"></i>
+                                    <span class="text-xs text-blue-300">拨打电话</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 功能4 -->
+                    <div class="feature-card group">
+                        <div class="absolute inset-0 bg-gradient-to-r from-amber-500/20 to-yellow-500/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        <div class="absolute -inset-0.5 bg-gradient-to-r from-amber-500 to-yellow-500 rounded-xl opacity-0 group-hover:opacity-20 blur-xl transition-all duration-500"></div>
+                        
+                        <div class="relative p-8 rounded-xl bg-gray-900/80 backdrop-blur border border-gray-800 group-hover:border-amber-500/50 transition-all duration-500 z-10">
+                            <div class="feature-icon mb-6">
+                                <div class="w-16 h-16 rounded-full bg-gradient-to-br from-amber-500 to-yellow-500 flex items-center justify-center text-white shadow-lg shadow-amber-500/30 group-hover:shadow-amber-500/50 transition-all duration-500">
+                                    <i class="fas fa-car-crash text-2xl"></i>
+                                </div>
+                                <div class="icon-pulse"></div>
+                            </div>
+                            
+                            <h3 class="text-xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-yellow-400 group-hover:from-amber-300 group-hover:to-yellow-300 transition-all duration-500">实时风险预警与紧急接管</h3>
+                            
+                            <p class="text-gray-300 mb-6 group-hover:text-white transition-colors duration-500">
+                                在危险情况或驾驶员长时间无响应时，系统可向驾驶员发出倒计时提示并在必要时接管车辆控制，如自动减速、执行紧急刹车或改变行车轨迹，保障安全。
+                            </p>
+                            
+                            <div class="warning-animation flex items-center justify-center mb-4">
+                                <div class="relative w-20 h-20 flex items-center justify-center">
+                                    <div class="absolute inset-0 rounded-full bg-amber-500/20 animate-ping"></div>
+                                    <div class="absolute inset-2 rounded-full bg-amber-500/30 animate-pulse"></div>
+                                    <div class="z-10 w-14 h-14 rounded-full bg-gradient-to-r from-amber-500 to-yellow-500 flex items-center justify-center">
+                                        <div class="text-2xl text-white font-bold countdown-animation">5</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex justify-center space-x-3">
+                                <div class="text-xs text-center px-3 py-1.5 bg-amber-500/20 rounded-lg border border-amber-500/30">
+                                    <div class="text-amber-300 font-medium">紧急制动</div>
+                                    <div class="text-amber-400/70 text-[10px]">0.5秒响应</div>
+                                </div>
+                                <div class="text-xs text-center px-3 py-1.5 bg-yellow-500/20 rounded-lg border border-yellow-500/30">
+                                    <div class="text-yellow-300 font-medium">智能避障</div>
+                                    <div class="text-yellow-400/70 text-[10px]">99.7%准确率</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 功能5 -->
+                    <div class="feature-card group col-span-1 md:col-span-2">
+                        <div class="absolute inset-0 bg-gradient-to-r from-emerald-500/20 to-green-500/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        <div class="absolute -inset-0.5 bg-gradient-to-r from-emerald-500 to-green-500 rounded-xl opacity-0 group-hover:opacity-20 blur-xl transition-all duration-500"></div>
+                        
+                        <div class="relative p-8 rounded-xl bg-gray-900/80 backdrop-blur border border-gray-800 group-hover:border-emerald-500/50 transition-all duration-500 z-10">
+                            <div class="flex flex-col md:flex-row items-center">
+                                <div class="feature-icon mb-6 md:mb-0 md:mr-8">
+                                    <div class="w-16 h-16 rounded-full bg-gradient-to-br from-emerald-500 to-green-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/30 group-hover:shadow-emerald-500/50 transition-all duration-500">
+                                        <i class="fas fa-database text-2xl"></i>
+                                    </div>
+                                    <div class="icon-pulse"></div>
+                                </div>
+                                
+                                <div class="flex-1">
+                                    <h3 class="text-xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-green-400 group-hover:from-emerald-300 group-hover:to-green-300 transition-all duration-500 text-center md:text-left">数据本地化与分层联邦学习</h3>
+                                    
+                                    <p class="text-gray-300 mb-6 group-hover:text-white transition-colors duration-500">
+                                        所有敏感数据（如面部表情和语音）均在本地处理，只上传模型参数，利用云端对多车辆数据进行安全聚合，兼顾了隐私保护与模型学习效果。
+                                    </p>
+                                    
+                                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                        <div class="text-center p-3 bg-emerald-500/10 rounded-lg border border-emerald-500/30 hover:bg-emerald-500/20 transition-colors duration-300">
+                                            <i class="fas fa-user-shield text-emerald-400 text-xl mb-2"></i>
+                                            <div class="text-xs text-emerald-300 font-medium">本地数据处理</div>
+                                        </div>
+                                        <div class="text-center p-3 bg-green-500/10 rounded-lg border border-green-500/30 hover:bg-green-500/20 transition-colors duration-300">
+                                            <i class="fas fa-lock text-green-400 text-xl mb-2"></i>
+                                            <div class="text-xs text-green-300 font-medium">加密数据传输</div>
+                                        </div>
+                                        <div class="text-center p-3 bg-emerald-500/10 rounded-lg border border-emerald-500/30 hover:bg-emerald-500/20 transition-colors duration-300">
+                                            <i class="fas fa-cloud-upload-alt text-emerald-400 text-xl mb-2"></i>
+                                            <div class="text-xs text-emerald-300 font-medium">仅上传模型参数</div>
+                                        </div>
+                                        <div class="text-center p-3 bg-green-500/10 rounded-lg border border-green-500/30 hover:bg-green-500/20 transition-colors duration-300">
+                                            <i class="fas fa-brain text-green-400 text-xl mb-2"></i>
+                                            <div class="text-xs text-green-300 font-medium">联邦学习算法</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 市场价值 -->
+            <section id="market" class="mb-20">
+                <h2 class="text-2xl md:text-3xl mb-10 flex items-center">
+                    <i class="fas fa-chart-line text-3xl mr-3 text-gradient"></i>
+                    商业与市场价值
+                </h2>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- 目标客群 -->
+                    <div class="card p-6 transform hover:scale-105 transition-all duration-300 bg-gradient-to-br from-blue-500/5 to-purple-500/5 border border-blue-500/20">
+                        <div class="text-center mb-6">
+                            <div class="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center mx-auto shadow-lg">
+                                <i class="fas fa-users text-2xl text-white"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold mt-4 text-gradient">目标客群与应用场景</h3>
+                        </div>
+                        <ul class="space-y-4">
+                            <li class="flex items-start p-4 rounded-lg bg-white/5 backdrop-blur-sm border border-blue-500/10 hover:border-blue-500/30 transition-all duration-300">
+                                <div class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center mr-3 flex-shrink-0">
+                                    <i class="fas fa-user-alt text-blue-500"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-blue-500">个人车主</p>
+                                    <p class="text-sm text-text-light">新手及家庭用车注重驾驶安全与舒适度；经常长途驾驶的群体高度关注疲劳检测与情绪管理。</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start p-4 rounded-lg bg-white/5 backdrop-blur-sm border border-purple-500/10 hover:border-purple-500/30 transition-all duration-300">
+                                <div class="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center mr-3 flex-shrink-0">
+                                    <i class="fas fa-building text-purple-500"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-purple-500">企业用户</p>
+                                    <p class="text-sm text-text-light">大型物流车队、网约车平台、客运服务等，需要在大规模运营场景中降低交通事故率、提升服务品质、保护乘客和驾驶员隐私。</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start p-4 rounded-lg bg-white/5 backdrop-blur-sm border border-indigo-500/10 hover:border-indigo-500/30 transition-all duration-300">
+                                <div class="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center mr-3 flex-shrink-0">
+                                    <i class="fas fa-industry text-indigo-500"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-indigo-500">汽车制造商</p>
+                                    <p class="text-sm text-text-light">中高端车型配套智能驾驶辅助系统（ADAS）或信息娱乐系统（IVI），通过差异化功能增强市场竞争力。</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <!-- 竞争优势 -->
+                    <div class="card p-6 transform hover:scale-105 transition-all duration-300 bg-gradient-to-br from-purple-500/5 to-pink-500/5 border border-purple-500/20">
+                        <div class="text-center mb-6">
+                            <div class="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center mx-auto shadow-lg">
+                                <i class="fas fa-award text-2xl text-white"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold mt-4 text-gradient">差异化竞争优势</h3>
+                        </div>
+                        <ul class="space-y-4">
+                            <li class="flex items-start p-4 rounded-lg bg-white/5 backdrop-blur-sm border border-purple-500/10 hover:border-purple-500/30 transition-all duration-300">
+                                <div class="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center mr-3 flex-shrink-0">
+                                    <i class="fas fa-shield-alt text-purple-500"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-purple-500">隐私保护优势</p>
+                                    <p class="text-sm text-text-light">联邦学习彻底杜绝传统集中式数据采集导致的泄露风险，助力车企和平台满足严格的数据合规要求。</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start p-4 rounded-lg bg-white/5 backdrop-blur-sm border border-pink-500/10 hover:border-pink-500/30 transition-all duration-300">
+                                <div class="w-10 h-10 rounded-full bg-pink-500/20 flex items-center justify-center mr-3 flex-shrink-0">
+                                    <i class="fas fa-chart-pie text-pink-500"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-pink-500">多模态检测精度</p>
+                                    <p class="text-sm text-text-light">融合表情、语音、动作等多种模态，实现精准度远超传统单一感知方案。</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start p-4 rounded-lg bg-white/5 backdrop-blur-sm border border-purple-500/10 hover:border-purple-500/30 transition-all duration-300">
+                                <div class="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center mr-3 flex-shrink-0">
+                                    <i class="fas fa-comment-dots text-purple-500"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-purple-500">主动式智能交互</p>
+                                    <p class="text-sm text-text-light">虚拟数字人不仅是"助手"，更具备主动关怀与干预能力，将车载系统的被动监控升级为主动陪伴。</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <!-- 商业前景 -->
+                    <div class="card p-6 transform hover:scale-105 transition-all duration-300 bg-gradient-to-br from-pink-500/5 to-red-500/5 border border-pink-500/20">
+                        <div class="text-center mb-6">
+                            <div class="w-16 h-16 rounded-full bg-gradient-to-br from-pink-500 to-red-500 flex items-center justify-center mx-auto shadow-lg">
+                                <i class="fas fa-chart-line text-2xl text-white"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold mt-4 text-gradient">潜在收益与可持续发展</h3>
+                        </div>
+                        <ul class="space-y-4">
+                            <li class="flex items-start p-4 rounded-lg bg-white/5 backdrop-blur-sm border border-pink-500/10 hover:border-pink-500/30 transition-all duration-300">
+                                <div class="w-10 h-10 rounded-full bg-pink-500/20 flex items-center justify-center mr-3 flex-shrink-0">
+                                    <i class="fas fa-box-open text-pink-500"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-pink-500">一体化软硬件服务</p>
+                                    <p class="text-sm text-text-light">可与车载摄像头、传感器集成打包销售，或以订阅模式提供持续升级的情绪与行为监测服务。</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start p-4 rounded-lg bg-white/5 backdrop-blur-sm border border-red-500/10 hover:border-red-500/30 transition-all duration-300">
+                                <div class="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center mr-3 flex-shrink-0">
+                                    <i class="fas fa-handshake text-red-500"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-red-500">定制化开发与B2B合作</p>
+                                    <p class="text-sm text-text-light">为汽车厂商、出行平台提供API接口与软硬件集成方案，发挥规模化应用价值。</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start p-4 rounded-lg bg-white/5 backdrop-blur-sm border border-pink-500/10 hover:border-pink-500/30 transition-all duration-300">
+                                <div class="w-10 h-10 rounded-full bg-pink-500/20 flex items-center justify-center mr-3 flex-shrink-0">
+                                    <i class="fas fa-globe-asia text-pink-500"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-pink-500">商业前景广阔</p>
+                                    <p class="text-sm text-text-light">情绪检测与识别市场规模到2025年或可达数千亿美元；智能驾驶、隐私保护领域需求快速增长。</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- 市场潜力图 -->
+                <div class="mt-16">
+                    <h3 class="text-xl font-semibold mb-6 flex items-center">
+                        <i class="fas fa-chart-bar text-2xl mr-3 text-gradient"></i>
+                        市场规模与增长趋势
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <!-- 左侧：目标市场细分 -->
+                        <div class="card p-6 bg-gradient-to-br from-gray-900 to-gray-800 border border-blue-500/20">
+                            <h4 class="text-lg font-semibold mb-6 text-center text-gradient">目标市场细分及预期份额</h4>
+                            <div class="space-y-6">
+                                <!-- 个人车主 -->
+                                <div class="relative">
+                                    <div class="flex justify-between mb-2">
+                                        <span class="text-sm font-medium text-blue-400">个人车主</span>
+                                        <span class="text-sm font-medium text-blue-400">45%</span>
+                                    </div>
+                                    <div class="w-full bg-gray-700 rounded-full h-3">
+                                        <div class="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-1000" style="width: 45%"></div>
+                                    </div>
+                                    <div class="mt-2 text-xs text-gray-400">新车及存量车辆升级市场</div>
+                                </div>
+                                
+                                <!-- 企业用户 -->
+                                <div class="relative">
+                                    <div class="flex justify-between mb-2">
+                                        <span class="text-sm font-medium text-purple-400">企业用户</span>
+                                        <span class="text-sm font-medium text-purple-400">30%</span>
+                                    </div>
+                                    <div class="w-full bg-gray-700 rounded-full h-3">
+                                        <div class="bg-gradient-to-r from-purple-500 to-purple-600 h-3 rounded-full transition-all duration-1000" style="width: 30%"></div>
+                                    </div>
+                                    <div class="mt-2 text-xs text-gray-400">车队管理与商用车市场</div>
+                                </div>
+                                
+                                <!-- 汽车制造商 -->
+                                <div class="relative">
+                                    <div class="flex justify-between mb-2">
+                                        <span class="text-sm font-medium text-pink-400">汽车制造商</span>
+                                        <span class="text-sm font-medium text-pink-400">25%</span>
+                                    </div>
+                                    <div class="w-full bg-gray-700 rounded-full h-3">
+                                        <div class="bg-gradient-to-r from-pink-500 to-pink-600 h-3 rounded-full transition-all duration-1000" style="width: 25%"></div>
+                                    </div>
+                                    <div class="mt-2 text-xs text-gray-400">前装市场与品牌授权</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 右侧：市场规模预测 -->
+                        <div class="card p-6 bg-gradient-to-br from-gray-900 to-gray-800 border border-purple-500/20">
+                            <h4 class="text-lg font-semibold mb-6 text-center text-gradient">预计市场规模增长（2023-2026）</h4>
+                            
+                            <!-- 市场规模图表 -->
+                            <div class="relative h-96 mb-8">
+                                <!-- 图表容器 -->
+                                <div class="absolute inset-x-0 bottom-0 h-80 pt-4">
+                                    <!-- 图表背景 -->
+                                    <div class="absolute inset-0 left-12 bg-gray-900/50 border border-gray-800 rounded"></div>
+                                    
+                                    <!-- 垂直网格线 -->
+                                    <div class="absolute inset-0 left-12 grid grid-cols-4 h-full">
+                                        <div class="border-r border-gray-700 h-full"></div>
+                                        <div class="border-r border-gray-700 h-full"></div>
+                                        <div class="border-r border-gray-700 h-full"></div>
+                                        <div class="border-r border-gray-700 h-full"></div>
+                                    </div>
+                                    
+                                    <!-- 水平网格线 -->
+                                    <div class="absolute inset-0 left-12 grid grid-rows-5 h-full">
+                                        <div class="border-b border-gray-700 w-full"></div>
+                                        <div class="border-b border-gray-700 w-full"></div>
+                                        <div class="border-b border-gray-700 w-full"></div>
+                                        <div class="border-b border-gray-700 w-full"></div>
+                                        <div class="border-b border-gray-700 w-full"></div>
+                                    </div>
+                                    
+                                    <!-- Y轴 -->
+                                    <div class="absolute left-12 top-0 h-full border-l-2 border-gray-500 z-20"></div>
+                                    
+                                    <!-- X轴 -->
+                                    <div class="absolute left-12 bottom-0 right-0 border-b-2 border-gray-500 z-20"></div>
+                                    
+                                    <!-- Y轴刻度标签 -->
+                                    <div class="absolute left-0 h-full flex flex-col justify-between text-sm text-gray-300 font-medium">
+                                        <div class="transform -translate-y-1/2 flex items-center">
+                                            <span class="w-10 text-right pr-1">5000亿</span>
+                                            <div class="w-2 h-0.5 bg-gray-500"></div>
+                                        </div>
+                                        <div class="transform -translate-y-1/2 flex items-center">
+                                            <span class="w-10 text-right pr-1">3750亿</span>
+                                            <div class="w-2 h-0.5 bg-gray-500"></div>
+                                        </div>
+                                        <div class="transform -translate-y-1/2 flex items-center">
+                                            <span class="w-10 text-right pr-1">2500亿</span>
+                                            <div class="w-2 h-0.5 bg-gray-500"></div>
+                                        </div>
+                                        <div class="transform -translate-y-1/2 flex items-center">
+                                            <span class="w-10 text-right pr-1">1250亿</span>
+                                            <div class="w-2 h-0.5 bg-gray-500"></div>
+                                        </div>
+                                        <div class="transform -translate-y-1/2 flex items-center">
+                                            <span class="w-10 text-right pr-1">0</span>
+                                            <div class="w-2 h-0.5 bg-gray-500"></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- X轴刻度标签 -->
+                                    <div class="absolute left-12 right-0 bottom-0 flex justify-between text-sm text-gray-300 font-medium transform translate-y-6">
+                                        <span class="transform -translate-x-1/2">2023</span>
+                                        <span class="transform -translate-x-1/2">2024</span>
+                                        <span class="transform -translate-x-1/2">2025</span>
+                                        <span class="transform -translate-x-1/2">2026</span>
+                                    </div>
+                                    
+                                    <!-- Y轴标题 -->
+                                    <div class="absolute left-1 top-1/2 transform -translate-y-1/2 -rotate-90 text-gray-300 font-medium text-xs whitespace-nowrap">
+                                        <span class="bg-gray-800/80 px-2 py-1 rounded-full backdrop-blur-sm">市场规模（人民币）</span>
+                                    </div>
+                                    
+                                    <!-- X轴标题 -->
+                                    <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-14 text-gray-300 font-medium text-xs">
+                                        <span class="bg-gray-800/80 px-2 py-1 rounded-full backdrop-blur-sm">年份</span>
+                                    </div>
+                                    
+                                    <!-- 数据曲线和点 -->
+                                    <div class="absolute inset-0 left-12 overflow-hidden">
+                                        <svg class="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                                            <defs>
+                                                <linearGradient id="market-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                                    <stop offset="0%" stop-color="#3B82F6" />
+                                                    <stop offset="50%" stop-color="#8B5CF6" />
+                                                    <stop offset="100%" stop-color="#EC4899" />
+                                                </linearGradient>
+                                                <filter id="market-glow" x="-20%" y="-20%" width="140%" height="140%">
+                                                    <feGaussianBlur stdDeviation="2" result="blur" />
+                                                    <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                                                </filter>
+                                            </defs>
+                                            
+                                            <!-- 曲线 -->
+                                            <path d="M0,95 C15,85 50,70 80,30 S95,10 100,5" stroke="url(#market-gradient)" stroke-width="0.5" fill="none" filter="url(#market-glow)" />
+                                            
+                                            <!-- 数据点 -->
+                                            <circle cx="0" cy="95" r="1.5" fill="#3B82F6" filter="url(#market-glow)" />
+                                            <circle cx="33" cy="70" r="1.5" fill="#8B5CF6" filter="url(#market-glow)" />
+                                            <circle cx="66" cy="40" r="1.5" fill="#A855F7" filter="url(#market-glow)" />
+                                            <circle cx="100" cy="5" r="1.5" fill="#EC4899" filter="url(#market-glow)" />
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="text-center">
+                                <span class="inline-block px-4 py-2 rounded-full bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-sm font-medium text-white border border-purple-500/30">
+                                    预计年均复合增长率(CAGR) > 45%
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 市场增长驱动因素 -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+                        <div class="card p-4 bg-gradient-to-br from-blue-500/10 to-blue-600/10 border border-blue-500/30 transform hover:scale-105 transition-all duration-300">
+                            <div class="flex items-center mb-2">
+                                <div class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center mr-3">
+                                    <i class="fas fa-car-crash text-blue-400"></i>
+                                </div>
+                                <span class="font-medium text-blue-400">安全需求增长</span>
+                            </div>
+                            <p class="text-sm text-gray-400">交通安全法规趋严，智能预警需求上升</p>
+                        </div>
+                        
+                        <div class="card p-4 bg-gradient-to-br from-purple-500/10 to-purple-600/10 border border-purple-500/30 transform hover:scale-105 transition-all duration-300">
+                            <div class="flex items-center mb-2">
+                                <div class="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center mr-3">
+                                    <i class="fas fa-shield-alt text-purple-400"></i>
+                                </div>
+                                <span class="font-medium text-purple-400">隐私保护重视</span>
+                            </div>
+                            <p class="text-sm text-gray-400">数据安全法规推动技术升级需求</p>
+                        </div>
+                        
+                        <div class="card p-4 bg-gradient-to-br from-pink-500/10 to-pink-600/10 border border-pink-500/30 transform hover:scale-105 transition-all duration-300">
+                            <div class="flex items-center mb-2">
+                                <div class="w-10 h-10 rounded-full bg-pink-500/20 flex items-center justify-center mr-3">
+                                    <i class="fas fa-robot text-pink-400"></i>
+                                </div>
+                                <span class="font-medium text-pink-400">智能化升级</span>
+                            </div>
+                            <p class="text-sm text-gray-400">AI技术成熟推动智能座舱普及</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 未来展望 -->
+            <section id="future" class="mb-20">
+                <h2 class="text-2xl md:text-3xl mb-10">未来拓展与技术演进</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <div>
+                        <h3 class="text-xl font-semibold mb-6 flex items-center">
+                            <i class="fas fa-microchip text-secondary-color mr-3"></i> 技术层面
+                        </h3>
+                        <div class="space-y-6">
+                            <div class="card p-5 border-l-4 border-secondary-color">
+                                <h4 class="font-medium text-lg mb-2">模型轻量化与自监督学习</h4>
+                                <p class="text-text-light">在车载终端受限环境中继续提升实时推理性能，同时保持高准确度。</p>
+                            </div>
+                            <div class="card p-5 border-l-4 border-secondary-color">
+                                <h4 class="font-medium text-lg mb-2">个性化与多传感器融合</h4>
+                                <p class="text-text-light">增加心率、皮肤电等生理数据检测，帮助系统更精确地感知驾驶员身心状态，为更多场景提供服务。</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-xl font-semibold mb-6 flex items-center">
+                            <i class="fas fa-puzzle-piece text-accent-color mr-3"></i> 场景与功能扩展
+                        </h3>
+                        <div class="space-y-6">
+                            <div class="card p-5 border-l-4 border-accent-color">
+                                <h4 class="font-medium text-lg mb-2">全车生态支持</h4>
+                                <p class="text-text-light">与车辆的导航、娱乐、空调等系统联动，实现温度、音乐、座椅等全方位智能调配。</p>
+                            </div>
+                            <div class="card p-5 border-l-4 border-accent-color">
+                                <h4 class="font-medium text-lg mb-2">全球化布局</h4>
+                                <p class="text-text-light">适应不同地区的语言与驾驶习惯，在网约车、跨国货运物流中展开大规模应用。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-16">
+                    <h3 class="text-xl font-semibold mb-6">商业模式创新</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="card p-6 bg-primary-color bg-opacity-5 border border-primary-color border-opacity-20">
+                            <div class="flex items-start mb-4">
+                                <div class="w-10 h-10 rounded-full bg-primary-color bg-opacity-20 flex items-center justify-center mr-4 flex-shrink-0">
+                                    <i class="fas fa-plug text-primary-color"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium text-lg">开放API与生态共建</h4>
+                                    <p class="text-text-light mt-2">允许第三方厂商接入多模态检测、联邦学习等核心能力，共同构建智能车联网生态圈。</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card p-6 bg-primary-color bg-opacity-5 border border-primary-color border-opacity-20">
+                            <div class="flex items-start mb-4">
+                                <div class="w-10 h-10 rounded-full bg-primary-color bg-opacity-20 flex items-center justify-center mr-4 flex-shrink-0">
+                                    <i class="fas fa-globe text-primary-color"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium text-lg">垂直整合与国际化</h4>
+                                    <p class="text-text-light mt-2">针对各国不同法规和驾驶文化做本地化优化，推动国际合作，强化品牌影响力。</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 延伸阅读 -->
+            <section id="reading" class="mb-20">
+                <h2 class="text-2xl md:text-3xl mb-10">>产品市场调查</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- 书籍1 -->
+                    <div class="card p-5 flex flex-col h-full">
+                        <div class="flex-grow">
+                            <div class="text-sm text-secondary-color font-medium mb-2"></div>
+                            <h3 class="text-lg font-semibold mb-3">《Federated Learning: Privacy and Incentive》</h3>
+                            <p class="text-text-light text-sm mb-3">作者: Qiang Yang, Lixin Fan, Han Yu</p>
+                            <p class="text-text-light">深入探讨联邦学习的隐私保护原理、激励机制设计和在各领域的实际应用，为理解车载系统中的隐私保护技术提供理论基础。</p>
+                        </div>
+                        <div class="mt-4">
+                            <a href="#" class="text-primary-color hover:text-secondary-color transition-colors text-sm font-medium flex items-center">
+                                了解更多 <i class="fas fa-external-link-alt ml-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- 书籍2 -->
+                    <div class="card p-5 flex flex-col h-full">
+                        <div class="flex-grow">
+                            
+                            <h3 class="text-lg font-semibold mb-3">《多模态情感计算：理论与应用》</h3>
+                            <p class="text-text-light text-sm mb-3">作者: 黄小薇, 张建伟</p>
+                            <p class="text-text-light">系统介绍多模态情感计算理论、算法及实践应用，特别关注驾驶场景下情绪识别的挑战与解决方案。</p>
+                        </div>
+                        <div class="mt-4">
+                            <a href="#" class="text-primary-color hover:text-secondary-color transition-colors text-sm font-medium flex items-center">
+                                了解更多 <i class="fas fa-external-link-alt ml-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- 书籍3 -->
+                    <div class="card p-5 flex flex-col h-full">
+                        <div class="flex-grow">
+                            
+                            <h3 class="text-lg font-semibold mb-3">《Advanced Driver Assistance Systems》</h3>
+                            <p class="text-text-light text-sm mb-3">作者: Harald Ludvigsen</p>
+                            <p class="text-text-light">详细解析高级驾驶辅助系统的设计原理、关键技术和未来发展方向，为智能车载系统的构建提供实用指导。</p>
+                        </div>
+                        <div class="mt-4">
+                            <a href="#" class="text-primary-color hover:text-secondary-color transition-colors text-sm font-medium flex items-center">
+                                了解更多 <i class="fas fa-external-link-alt ml-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- 书籍4 -->
+                    <div class="card p-5 flex flex-col h-full">
+                        <div class="flex-grow">
+                            <div class="text-sm text-secondary-color font-medium mb-2">研究报告</div>
+                            <h3 class="text-lg font-semibold mb-3">《数字人技术与产业发展白皮书》</h3>
+                            <p class="text-text-light text-sm mb-3">作者: 中国电子信息产业发展研究院</p>
+                            <p class="text-text-light">全面阐述数字人技术发展现状、产业链布局和应用前景，对虚拟数字人在车载环境中的应用有独到见解。</p>
+                        </div>
+                        <div class="mt-4">
+                            <a href="#" class="text-primary-color hover:text-secondary-color transition-colors text-sm font-medium flex items-center">
+                                了解更多 <i class="fas fa-external-link-alt ml-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- 书籍5 -->
+                    <div class="card p-5 flex flex-col h-full">
+                        <div class="flex-grow">
+                            <div class="text-sm text-secondary-color font-medium mb-2">行业展望</div>
+                            <h3 class="text-lg font-semibold mb-3">《智能网联汽车技能网联汽车技术路线图2.0》</h3>
+                            <p class="text-text-light text-sm mb-3">作者: 中国汽车工程学会</p>
+                            <p class="text-text-light">权威解读中国智能网联汽车未来发展方向，为项目长期规划和市场定位提供专业参考。</p>
+                        </div>
+                        <div class="mt-4">
+                            <a href="#" class="text-primary-color hover:text-secondary-color transition-colors text-sm font-medium flex items-center">
+                
+                                了解更多 <i class="fas fa-external-link-alt ml-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 联系与合作 -->
+            <section id="contact" class="mb-20">
+                <div class="gradient-bg rounded-2xl p-8 md:p-12 text-center">
+                    <h2 class="text-2xl md:text-3xl font-bold mb-6">携手共建智能驾驶的未来</h2>
+                    <p class="text-lg mb-8 max-w-2xl mx-auto">
+                        我们期待与汽车制造商、科技公司、研究机构建立合作，共同推动车载智能系统的创新与应用，为用户带来更安全、更智能的驾驶体验。
+                    </p>
+                    <a href="#" class="custom-button py-3 px-8 text-lg">
+                        联系我们 <i class="fas fa-arrow-right ml-2"></i>
+                    </a>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-card-background py-10 px-6 md:px-10 lg:px-20">
+        <div class="max-w-6xl mx-auto">
+            <div class="flex flex-col md:flex-row justify-between items-center md:items-start">
+                <div class="mb-8 md:mb-0 text-center md:text-left">
+                    <div class="text-2xl font-bold text-gradient mb-4">次元智驾</div>
+                    <p class="text-text-light max-w-md">
+                        融合多模态检测、联邦学习与虚拟数字人技术，打造面向未来的智能车载系统。
+                    </p>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-8">
+                    <div>
+                        <h4 class="font-semibold mb-4">关于我们</h4>
+                        
+                        <ul class="space-y-2">
+                            <li><a href="#" class="text-text-light hover:text-secondary-color transition-colors">公司简介</a></li>
+                            <li><a href="#" class="text-text-light hover:text-secondary-color transition-colors">团队介绍</a></li>
+                            <li><a href="#" class="text-text-light hover:text-secondary-color transition-colors">发展历程</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold mb-4">产品服务</h4>
+                        <ul class="space-y-2">
+                            <li><a href="#" class="text-text-light hover:text-secondary-color transition-colors">解决方案</a></li>
+                            <li><a href="#" class="text-text-light hover:text-secondary-color transition-colors">技术支持</a></li>
+                            <li><a href="#" class="text-text-light hover:text-secondary-color transition-colors">合作伙伴</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold mb-4">联系我们</h4>
+                        <ul class="space-y-2">
+                            <li class="flex items-center">
+                                <i class="fas fa-envelope text-secondary-color mr-2"></i>
+                                <a href="mailto:contact@example.com" class="text-text-light hover:text-secondary-color transition-colors">xc02111204@gmail.com</a>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-phone-alt text-secondary-color mr-2"></i>
+                                <a href="tel:+860000000000" class="text-text-light hover:text-secondary-color transition-colors">+86 15717027026</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-10 pt-6 border-t border-border-color text-center text-text-light text-sm">
+                <p>© 2023 智驾未来 版权所有 | 隐私政策 | 使用条款</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // 初始化 Mermaid
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'default',
+            securityLevel: 'loose',
+            fontFamily: "'Noto Sans SC', sans-serif"
+        });
+
+        // 主题切换
+        document.addEventListener('DOMContentLoaded', function() {
+            const themeToggle = document.getElementById('themeToggle');
+            
+            // 检查系统偏好
+            const prefersDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            
+            // 检查本地存储
+            let currentTheme = localStorage.getItem('theme');
+            if (!currentTheme) {
+                currentTheme = prefersDarkMode ? 'dark' : 'light';
+            }
+            
+            // 应用主题
+            
+            
+            // 应用主题
+            applyTheme(currentTheme);
+            
+            // 添加切换事件
+            themeToggle.addEventListener('click', function() {
+                const newTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+                applyTheme(newTheme);
+                localStorage.setItem('theme', newTheme);
+                
+                // 重新初始化Mermaid以适应新主题
+                document.querySelectorAll('.mermaid').forEach(diagram => {
+                    const content = diagram.textContent;
+                    diagram.innerHTML = content;
+                    mermaid.init(undefined, diagram);
+                });
+            });
+            
+            function applyTheme(theme) {
+                document.documentElement.setAttribute('data-theme', theme);
+                themeToggle.setAttribute('data-theme', theme);
+                
+                // 根据主题设置Mermaid
+                mermaid.initialize({ 
+                    theme: theme === 'dark' ? 'dark' : 'default'
+                });
+            }
+            
+            // 系统主题变化监听
+            const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+            mediaQuery.addEventListener('change', e => {
+                if (!localStorage.getItem('theme')) {
+                    const newTheme = e.matches ? 'dark' : 'light';
+                    applyTheme(newTheme);
+                    
+                    // 重新初始化Mermaid
+                    document.querySelectorAll('.mermaid').forEach(diagram => {
+                        const content = diagram.textContent;
+                        diagram.innerHTML = content;
+                        mermaid.init(undefined, diagram);
+                    });
+                }
+            });
+        });
+        
+        // 阅读进度条
+        window.addEventListener('scroll', function() {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById("progressBar").style.width = scrolled + "%";
+        });
+        
+        // 滚动动画
+        document.addEventListener('DOMContentLoaded', function() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('animate-fadeIn');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, {
+                threshold: 0.1
+            });
+            
+            document.querySelectorAll('section').forEach(section => {
+                observer.observe(section);
+            });
+            
+            document.querySelectorAll('.card').forEach(card => {
+                observer.observe(card);
+            });
+        });
+        
+        // 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    window.scrollTo({
+                        top: target.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+        
+        // 滚动触发动画
+        document.addEventListener('DOMContentLoaded', function() {
+            // 添加滚动动画类
+            const scrollElements = document.querySelectorAll('.card, .highlight-block, h2, h3');
+            scrollElements.forEach(el => {
+                el.classList.add('scroll-animate');
+            });
+            
+            // 检测元素是否在视口中
+            const elementInView = (el, dividend = 1) => {
+                const elementTop = el.getBoundingClientRect().top;
+                return (
+                    elementTop <= (window.innerHeight || document.documentElement.clientHeight) / dividend
+                );
+            };
+            
+            // 添加动画类
+            const displayScrollElement = (element) => {
+                element.classList.add('active');
+            };
+            
+            // 处理滚动动画
+            const handleScrollAnimation = () => {
+                scrollElements.forEach((el) => {
+                    if (elementInView(el, 1.25)) {
+                        displayScrollElement(el);
+                    }
+                });
+            };
+            
+            // 初始检查
+            handleScrollAnimation();
+            
+            // 滚动监听
+            window.addEventListener('scroll', () => {
+                handleScrollAnimation();
+            });
+            
+            // 3D卡片效果
+            const cards = document.querySelectorAll('.card');
+            cards.forEach(card => {
+                // 添加3D效果类
+                card.classList.add('card-3d');
+                
+                // 创建内部容器
+                const cardInner = document.createElement('div');
+                cardInner.classList.add('card-inner');
+                
+                // 移动卡片内容到内部容器
+                while(card.firstChild) {
+                    cardInner.appendChild(card.firstChild);
+                }
+                
+                // 添加高光效果元素
+                const cardShine = document.createElement('div');
+                cardShine.classList.add('card-shine');
+                
+                // 重构卡片
+                card.appendChild(cardInner);
+                card.appendChild(cardShine);
+                
+                // 添加鼠标移动效果
+                card.addEventListener('mousemove', function(e) {
+                    const rect = card.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    
+                    const centerX = rect.width / 2;
+                    const centerY = rect.height / 2;
+                    
+                    const rotateX = (y - centerY) / 20;
+                    const rotateY = (centerX - x) / 20;
+                    
+                    cardInner.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+                });
+                
+                // 鼠标离开时重置
+                card.addEventListener('mouseleave', function() {
+                    cardInner.style.transform = 'rotateX(0) rotateY(0)';
+                });
+            });
+            
+            // 为标题添加渐变效果
+            const headings = document.querySelectorAll('h2, h3');
+            headings.forEach(heading => {
+                heading.classList.add('text-gradient-hover');
+            });
+            
+            // 为特定卡片添加渐变边框
+            const featureCards = document.querySelectorAll('.feature-tag').forEach(tag => {
+                const card = tag.closest('.card');
+                if (card) {
+                    card.classList.add('gradient-border');
+                }
+            });
+        });
+        
+        // 加载粒子效果
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化粒子效果
+            var script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js';
+            script.onload = function() {
+                particlesJS("particles-js", {
+                    "particles": {
+                        "number": {
+                            "value": 80,
+                            "density": {
+                                "enable": true,
+                                "value_area": 800
+                            }
+                        },
+                        "color": {
+                            "value": "#ffffff"
+                        },
+                        "shape": {
+                            "type": "circle",
+                            "stroke": {
+                                "width": 0,
+                                "color": "#000000"
+                            },
+                            "polygon": {
+                                "nb_sides": 5
+                            }
+                        },
+                        "opacity": {
+                            "value": 0.5,
+                            "random": false,
+                            "anim": {
+                                "enable": false,
+                                "speed": 1,
+                                "opacity_min": 0.1,
+                                "sync": false
+                            }
+                        },
+                        "size": {
+                            "value": 3,
+                            "random": true,
+                            "anim": {
+                                "enable": false,
+                                "speed": 40,
+                                "size_min": 0.1,
+                                "sync": false
+                            }
+                        },
+                        "line_linked": {
+                            "enable": true,
+                            "distance": 150,
+                            "color": "#ffffff",
+                            "opacity": 0.4,
+                            "width": 1
+                        },
+                        "move": {
+                            "enable": true,
+                            "speed": 2,
+                            "direction": "none",
+                            "random": false,
+                            "straight": false,
+                            "out_mode": "out",
+                            "bounce": false,
+                            "attract": {
+                                "enable": false,
+                                "rotateX": 600,
+                                "rotateY": 1200
+                            }
+                        }
+                    },
+                    "interactivity": {
+                        "detect_on": "canvas",
+                        "events": {
+                            "onhover": {
+                                "enable": true,
+                                "mode": "grab"
+                            },
+                            "onclick": {
+                                "enable": true,
+                                "mode": "push"
+                            },
+                            "resize": true
+                        },
+                        "modes": {
+                            "grab": {
+                                "distance": 140,
+                                "line_linked": {
+                                    "opacity": 1
+                                }
+                            },
+                            "bubble": {
+                                "distance": 400,
+                                "size": 40,
+                                "duration": 2,
+                                "opacity": 8,
+                                "speed": 3
+                            },
+                            "repulse": {
+                                "distance": 200,
+                                "duration": 0.4
+                            },
+                            "push": {
+                                "particles_nb": 4
+                            },
+                            "remove": {
+                                "particles_nb": 2
+                            }
+                        }
+                    },
+                    "retina_detect": true
+                });
+            };
+            document.body.appendChild(script);
+        });
+    </script>
+</body>
+</html>
